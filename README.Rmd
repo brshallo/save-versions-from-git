@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Save all versions of file in a git repo
+# Save all versions of file from a git repo
 
 `save_file_versions_from_git()` is set-up to make it easy to save all versions of a file from a git repository to a new folder. See "scripts/save_file_versions_from_git.R" for documentation on arguments in function.
 

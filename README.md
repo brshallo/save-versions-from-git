@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Save all versions of file in a git repo
+# Save all versions of file from a git repo
 
 `save_file_versions_from_git()` is set-up to make it easy to save all
 versions of a file from a git repository to a new folder. See
