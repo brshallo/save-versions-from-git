@@ -15,7 +15,7 @@ contains a made-up .csv file of a data dictionary of codes for different
 types of animals. These codes have changed over time. The history of
 these changes can be seen by reviewing the git history of the file.
 
-<img src="C:/Users/BSHALLOW/Documents/R/study/misc-repos/save-versions-from-git/figures/git-history.PNG" width="909" />
+<img src="figures/git-history.PNG" width="909" />
 
 Pretend we work at this zoo and are reviewing a variety of older
 datasets that have old encodings on them. We may need older versions of

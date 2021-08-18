@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 The [example-csv](https://github.com/brshallo/example-csv) repository contains a made-up .csv file of a data dictionary of codes for different types of animals. These codes have changed over time. The history of these changes can be seen by reviewing the git history of the file. 
 
 ```{r, echo = FALSE}
-knitr::include_graphics(here::here("figures", "git-history.PNG"))
+knitr::include_graphics("figures/git-history.PNG")
 ```
 
 Pretend we work at this zoo and are reviewing a variety of older datasets that have old encodings on them. We may need older versions of the "data/animal-encodings.csv" data dictionary file to understand them. In some cases we may want to save all versions of the file to a new folder location.
