@@ -61,14 +61,12 @@ save_file_versions_from_git <- function(repo_https,
   if(!skip_pull) {
     # "clone" or "pull" if have cloned previously
     if (fs::dir_exists(repo_local_path)) {
-      system(
-        glue::glue(
-          'bash -c "cd {repo_local_path} ; git pull {https}"',
-          repo_local_path = repo_local_path,
-          https = repo_https
-        )
-      )
+      
+      wd <- setwd(repo_local_path)
+      gert::git_pull()
+      setwd(wd)
     } else {
+      
       system(glue::glue('bash -c "git clone {https}"',
                         https = repo_https))
     }

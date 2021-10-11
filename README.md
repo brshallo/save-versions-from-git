@@ -4,11 +4,28 @@
 # Save all versions of file from a git repo
 
 `save_file_versions_from_git()` is set-up to make it easy to save all
-versions of a file from a git repository to a new folder. See
-“scripts/save\_file\_versions\_from\_git.R” for documentation on
-arguments in function.
+versions of a file in a git repository to a new folder. See
+[scripts/save\_file\_versions\_from\_git.R](https://github.com/brshallo/save-versions-from-git/blob/main/scripts/save_file_versions_from_git.R)
+for further documentation on arguments.
 
-## Problem statement
+**Example:**
+
+``` r
+# Load in function
+source("https://raw.githubusercontent.com/brshallo/save-versions-from-git/main/scripts/save_file_versions_from_git.R")
+
+# Run function using our animal-encodings data dictionary
+save_file_versions_from_git(
+  repo_https = "https://github.com/brshallo/example-csv.git",
+  file_path_in_repo = "data/animal-encodings.csv",
+  delete_clone = TRUE
+  )
+#> versions_example-csv_animal-encodings/840e0b0_2021-08-17.csv
+#> versions_example-csv_animal-encodings/c61cda8_2021-08-17.csv
+#> versions_example-csv_animal-encodings/ee76260_2021-08-17.csv
+```
+
+## Notes on Example
 
 The [example-csv](https://github.com/brshallo/example-csv) repository
 contains a made-up .csv file of a data dictionary of codes for different
@@ -39,32 +56,15 @@ folder location.
 (Again, see documentation “scripts/save\_file\_versions\_from\_git.R”
 for arguments and other things can do.)
 
-Example:
-
-``` r
-# Load in function
-source(here::here("scripts", "save_file_versions_from_git.R"))
-
-# Run function using our animal-encodings data dictionary
-save_file_versions_from_git(
-  repo_https = "https://github.com/brshallo/example-csv.git",
-  file_path_in_repo = "data/animal-encodings.csv",
-  delete_clone = TRUE
-  )
-#> versions_example-csv_animal-encodings/840e0b0_2021-08-17.csv
-#> versions_example-csv_animal-encodings/c61cda8_2021-08-17.csv
-#> versions_example-csv_animal-encodings/ee76260_2021-08-17.csv
-```
-
 # Notes and Cautions
 
 -   Is set-up using a mix of R and bash calls via `system()` – with a
-    little more effort could have written the whole thing using bash (to
-    reduce dependencies) and made a little bit cleaner.
--   The R `system()` calls may be Windows specific (not sure current
-    set-up would run on other OS’s).
+    little more effort could have written the whole thing using bash and
+    made a little bit cleaner.
 -   In addition to R, requires that git and bash are installed – though
     doesn’t do any checks for this.
+-   The R `system()` calls were written on Windows system with Bash for
+    Windows installed (have not tried on other OS’s / set-ups).
 -   I imagine more elegant solutions for “get all verisons of a data
     dictionary from a git repository” could be set-up using
     [pins](https://github.com/rstudio/pins) or other tools.
