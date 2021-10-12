@@ -2,6 +2,7 @@ library(dplyr)
 library(fs)
 library(purrr)
 library(readr)
+library(gert)
 
 # Add git to PATH (if not already on)
 if(length(grep("(?i)Git//bin", Sys.getenv("PATH"))) == 0) {
@@ -33,6 +34,8 @@ if(length(grep("(?i)Git//bin", Sys.getenv("PATH"))) == 0) {
 #'   name defined by `paste("versions", local_path,
 #'   fs::path_ext_remove(fs::path_file(file_path_in_repo)), sep = "_")`
 #'
+#' @param date_code Character string passed into bash script to format git log.
+#' @param folder_output_prefix
 #' @return Will create new files for all versions of file in git as well as "commits.txt" file)
 #'
 #' @examples
@@ -47,13 +50,19 @@ save_file_versions_from_git <- function(repo_https,
                                         delete_clone = FALSE,
                                         delete_commits.txt = TRUE,
                                         repo_local_path = stringr::str_extract(fs::path_ext_remove(repo_https), "([^/]*)$"),
-                                        folder_output_override = NULL) {
+                                        folder_output_override = NULL,
+                                        date_code = "%Y-%m-%dT%H%M%S",
+                                        folder_output_prefix = NULL
+                                        ) {
   
   
   # minor changes to inputs from arguments
   file_in_repo <- fs::path_file(file_path_in_repo)
-  folder_output <- paste("versions", repo_local_path, fs::path_ext_remove(file_in_repo), 
-                         sep = "_")
+  folder_output <- stringr::str_c(folder_output_prefix,
+                                  repo_local_path,
+                                  fs::path_ext_remove(file_in_repo),
+                                  sep = "_")
+  
   
   if(!is.null(folder_output_override)) folder_output <- folder_output_override
   
@@ -84,22 +93,26 @@ save_file_versions_from_git <- function(repo_https,
   # Create commits.csv that contain cols for commit and date for versions of file 
   system(
     glue::glue(
-      'bash -c "cd {repo_local_path} ; git log --oneline --pretty=format:{date_code} --date=short -- {file_path_in_repo} > ../{folder_output}/commits.txt"',
+      'bash -c "cd {repo_local_path} ; git log --oneline --pretty=format:{format_code} --date=format:{date_code} -- {file_path_in_repo} > ../{folder_output}/commits.txt"',
       repo_local_path = repo_local_path,
       file_path_in_repo = file_path_in_repo,
       folder_output = folder_output,
-      date_code = "'%h %ad'" # otherwise messes-up quotes
+      format_code = "'%h %ad'",
+      date_code = paste0("'", date_code, "'")
     )
   )
   
   # Output everything in commits.csv to file_versions_output
   data_versions <- readr::read_delim(here::here(folder_output, "commits.txt"),
                                      delim = " ",
-                                     col_names = c("commit", "date"))
+                                     col_names = c("commit", "date"), 
+                                     col_types = list(commit = col_character(), 
+                                                      date = col_character())
+                                     )
   
   data_commands <- data_versions %>%
     mutate(
-      output_file_name = glue::glue("{folder_output}/{commit}_{date}.{file_ext}",
+      output_file_name = glue::glue("'{folder_output}/{date}_{commit}.{file_ext}'",
                                     folder_output = folder_output,
                                     commit = commit,
                                     date = date,
@@ -134,5 +147,52 @@ save_file_versions_from_git <- function(repo_https,
   if(delete_clone) fs::dir_delete(repo_local_path)
   
   fs::dir_ls(folder_output)
+  
+}
+
+
+#' Save File Versions from Github
+#'
+#' Runs `save_file_versions_from_git()` but with `file_url` (which is then
+#' parsed in the function to create `repo_https` and `file_path_in_repo`) --
+#' possibly more fragile. Also will not work with other types of online repos,
+#' e.g. Azure Repos.
+#'
+#' @param file_url URL to file of interest on github.
+#' @inheritParams save_file_versions_from_git 
+#' 
+#' @inheritSection save_file_versions_from_git return
+#' @return Will create new files for all versions of file in git as well as "commits.txt" file)
+#'
+#' @examples
+#' # Simple example
+#' save_file_versions_from_github(file_url = "https://github.com/brshallo/example-csv/blob/main/data/animal-encodings.csv")
+#'                             
+save_file_versions_from_github <- function(file_url,
+                                           overwrite_all = FALSE,
+                                           skip_pull = FALSE,
+                                           delete_clone = FALSE,
+                                           delete_commits.txt = TRUE,
+                                           repo_local_path = stringr::str_extract(fs::path_ext_remove(
+                                             stringr::str_extract(file_url, "https://github.com/[^/]+/[^/]+")
+                                           ), "([^/]*)$"),
+                                           folder_output_override = NULL,
+                                           date_code = "%Y-%m-%dT%H%M%S",
+                                           folder_output_prefix = NULL) {
+  
+  repo_https <- stringr::str_extract(file_url, "https://github.com/[^/]+/[^/]+")
+  file_path_in_repo <- stringr::str_remove(file_url, "https://github.com/[^/]+/[^/]+/[^/]+/[^/]+/")
+  
+  save_file_versions_from_git(repo_https,
+                              file_path_in_repo,
+                              overwrite_all,
+                              skip_pull,
+                              delete_clone,
+                              delete_commits.txt,
+                              repo_local_path,
+                              folder_output_override,
+                              date_code,
+                              folder_output_prefix)
+  
   
 }

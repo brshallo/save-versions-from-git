@@ -3,29 +3,41 @@
 
 # Save all versions of file from a git repo
 
-`save_file_versions_from_git()` is set-up to make it easy to save all
-versions of a file in a git repository to a new folder. See
+`save_file_versions_from_git*()` is a helper to make it easy to save all
+(prior) versions of a (small) file in a git repository to a new folder.
+See
 [scripts/save\_file\_versions\_from\_git.R](https://github.com/brshallo/save-versions-from-git/blob/main/scripts/save_file_versions_from_git.R)
 for further documentation on arguments.
 
-**Example:**
+**Simple example:**
 
 ``` r
 # Load in function
 source("https://raw.githubusercontent.com/brshallo/save-versions-from-git/main/scripts/save_file_versions_from_git.R")
-
-# Run function using our animal-encodings data dictionary
-save_file_versions_from_git(
-  repo_https = "https://github.com/brshallo/example-csv.git",
-  file_path_in_repo = "data/animal-encodings.csv",
-  delete_clone = TRUE
-  )
-#> versions_example-csv_animal-encodings/840e0b0_2021-08-17.csv
-#> versions_example-csv_animal-encodings/c61cda8_2021-08-17.csv
-#> versions_example-csv_animal-encodings/ee76260_2021-08-17.csv
 ```
 
-## Notes on Example
+Let’s download all prior versions of the Chicago ridership data in the
+[tidymodels/modeldata](https://github.com/tidymodels/modeldata) package
+/ github repository.
+
+``` r
+save_file_versions_from_github(
+  file_url = "https://github.com/tidymodels/modeldata/commits/master/data/Chicago.rda",
+  delete_clone = TRUE)
+#> modeldata_Chicago/2019-11-26T134459_747759a.rda
+#> modeldata_Chicago/2020-06-22T083013_a5a177c.rda
+#> modeldata_Chicago/2021-06-24T160626_3bba7a0.rda
+#> modeldata_Chicago/2021-07-13T195732_b08d294.rda
+#> modeldata_Chicago/2021-07-13T212802_a025b89.rda
+```
+
+From here we might read these in and investigate changes to the files
+over time.
+
+## Use case and another example
+
+I wrote these functions primarily as a helper to load in small data
+dictionary files that changed over time and were versioned in git.
 
 The [example-csv](https://github.com/brshallo/example-csv) repository
 contains a made-up .csv file of a data dictionary of codes for different
@@ -40,12 +52,22 @@ the “data/animal-encodings.csv” data dictionary file to understand them.
 In some cases we may want to save all versions of the file to a new
 folder location.
 
+``` r
+# Save versions of specified file from github
+save_file_versions_from_github(file_url = "https://github.com/brshallo/example-csv/blob/main/data/animal-encodings.csv",
+                               delete_clone = TRUE)
+#> example-csv_animal-encodings/2021-08-17T133656_ee76260.csv
+#> example-csv_animal-encodings/2021-08-17T133730_c61cda8.csv
+#> example-csv_animal-encodings/2021-08-17T133800_840e0b0.csv
+```
+
 ## Steps of function
 
-`save_versions_from_git()` does the following:
+The core function used by `save_versions_from_github()` uses
+`save_versions_from_git()` which does the following:
 
-1.  Clones repository locally (or pull if have cloned previously)
-2.  Create new folder and “commits.txt” file specifying all previous
+1.  Clones repository locally (or pulls if have cloned previously)
+2.  Creates new folder and “commits.txt” file specifying all previous
     versions of the file
 3.  Save each version of the file into this new folder (default is for
     output folder name to be auto-generated based on repo and file name
@@ -53,28 +75,28 @@ folder location.
 4.  Output the files in the output folder (all versions from git history
     of specified file).
 
-(Again, see documentation “scripts/save\_file\_versions\_from\_git.R”
-for arguments and other things can do.)
+To use on other types of git hosting platforms, e.g. Azure Repos, you’ll
+need to use `save_file_versions_from_git()` which takes in slightly
+different arguments. Again, see documentation
+“scripts/save\_file\_versions\_from\_git.R” for arguments.
 
 # Notes and Cautions
 
+-   Clones the target repo into the existing folder – so be careful
+    about extant folder names, etc.
 -   Is set-up using a mix of R and bash calls via `system()` – with a
     little more effort could have written the whole thing using bash and
     made a little bit cleaner.
 -   In addition to R, requires that git and bash are installed – though
     doesn’t do any checks for this.
--   The R `system()` calls were written on Windows system with Bash for
-    Windows installed (have not tried on other OS’s / set-ups).
--   I imagine more elegant solutions for “get all verisons of a data
+-   Written on Windows OS with Bash for Windows installed (have not
+    tried on other configurations).
+-   I imagine more elegant solutions for “get all versions of a data
     dictionary from a git repository” could be set-up using
     [pins](https://github.com/rstudio/pins) or other tools.
 -   Naming convention is not 100% safe from duplicates and oddities. For
     example, if a repository has another file with the same name but in
-    a different folder and `save_file_versions_from_git()` is run from
-    the same project on with `file_path_in_repo` of both
-    “folder/file\_abc.csv” and “file\_abc.csv” versions from files on
-    each run would be sent to “versions\_repository\_file\_abc” (with no
-    clear way of differenatiating) and
-    “versions\_repository\_file\_abc/commits.txt” would only contain the
-    most up-to-date.
-    -   In other words: use with caution
+    a different folder and `save_file_versions_from_git*()` is run from
+    within the same project, default behavior may send to same folder
+    with no clear way of differentiating.
+-   use with caution
