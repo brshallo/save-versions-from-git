@@ -53,7 +53,7 @@ save_file_versions_from_git <- function(repo_https,
                                         folder_output_override = NULL,
                                         date_code = "%Y-%m-%dT%H%M%S",
                                         folder_output_prefix = NULL
-                                        ) {
+) {
   
   
   # minor changes to inputs from arguments
@@ -76,8 +76,7 @@ save_file_versions_from_git <- function(repo_https,
       setwd(wd)
     } else {
       
-      system(glue::glue('bash -c "git clone {https}"',
-                        https = repo_https))
+      gert::git_clone(repo_https, repo_local_path)
     }
     
   }
@@ -91,16 +90,27 @@ save_file_versions_from_git <- function(repo_https,
   fs::dir_create(folder_output)
   
   # Create commits.csv that contain cols for commit and date for versions of file 
+  # system(
+  #   glue::glue(
+  #     'bash -c "cd {repo_local_path} ; git log --oneline --pretty=format:{format_code} --date=format:{date_code} -- {file_path_in_repo} > ../{folder_output}/commits.txt"',
+  #     repo_local_path = repo_local_path,
+  #     file_path_in_repo = file_path_in_repo,
+  #     folder_output = folder_output,
+  #     format_code = "'%h %ad'",
+  #     date_code = paste0("'", date_code, "'")
+  #   )
+  # )
   system(
     glue::glue(
-      'bash -c "cd {repo_local_path} ; git log --oneline --pretty=format:{format_code} --date=format:{date_code} -- {file_path_in_repo} > ../{folder_output}/commits.txt"',
+      "bash -c 'COMMITSPATH=$PWD; cd {repo_local_path} ; git log --oneline --pretty=format:{format_code} --date=format:{date_code} -- {file_path_in_repo} > $COMMITSPATH/{folder_output}/commits.txt'",
       repo_local_path = repo_local_path,
       file_path_in_repo = file_path_in_repo,
       folder_output = folder_output,
-      format_code = "'%h %ad'",
+      format_code = '"%h %ad"',
       date_code = paste0("'", date_code, "'")
     )
   )
+  
   
   # Output everything in commits.csv to file_versions_output
   data_versions <- readr::read_delim(here::here(folder_output, "commits.txt"),
@@ -108,7 +118,7 @@ save_file_versions_from_git <- function(repo_https,
                                      col_names = c("commit", "date"), 
                                      col_types = list(commit = col_character(), 
                                                       date = col_character())
-                                     )
+  )
   
   data_commands <- data_versions %>%
     mutate(
@@ -119,7 +129,7 @@ save_file_versions_from_git <- function(repo_https,
                                     file_ext = fs::path_ext(file_in_repo)),
       command =
         glue::glue(
-          'bash -c "cd {repo_local_path} ; git cat-file -p {commit}:{file_path_in_repo} > ../{output_file_name}"',
+          "bash -c 'COMMITSPATH=$PWD; cd {repo_local_path} ; git cat-file -p {commit}:{file_path_in_repo} > $COMMITSPATH/{output_file_name}'",
           repo_local_path = repo_local_path,
           commit = commit,
           file_path_in_repo = file_path_in_repo,
@@ -132,7 +142,7 @@ save_file_versions_from_git <- function(repo_https,
     
     previously_run <- tibble(
       output_file_name = fs::dir_ls(folder_output) %>% glue::as_glue()
-      )
+    )
     
     data_commands <- anti_join(data_commands, previously_run, "output_file_name")
   }
@@ -173,6 +183,7 @@ save_file_versions_from_github <- function(file_url,
                                            skip_pull = FALSE,
                                            delete_clone = FALSE,
                                            delete_commits.txt = TRUE,
+                                           # Should be *relative* to working directory
                                            repo_local_path = stringr::str_extract(fs::path_ext_remove(
                                              stringr::str_extract(file_url, "https://github.com/[^/]+/[^/]+")
                                            ), "([^/]*)$"),
