@@ -92,12 +92,13 @@ save_file_versions_from_git <- function(repo_https,
   # Create commits.csv that contain cols for commit and date for versions of file 
   system(
     glue::glue(
-      "bash -c 'COMMITSPATH=$PWD; cd {repo_local_path} ; git log --oneline --pretty=format:{format_code} --date=format:{date_code} -- {file_path_in_repo} > $COMMITSPATH/{folder_output}/commits.txt'",
+      "bash -c 'COMMITSPATH={qt}$(PWD){qt}; cd {repo_local_path} ; git log --oneline --pretty=format:{format_code} --date=format:{date_code} -- {file_path_in_repo} > {qt}$COMMITSPATH{qt}/{folder_output}/commits.txt'",
       repo_local_path = repo_local_path,
       file_path_in_repo = file_path_in_repo,
       folder_output = folder_output,
       format_code = '"%h %ad"',
-      date_code = paste0('"', date_code, '"')
+      date_code = paste0('"', date_code, '"'),
+      qt = '"'
     )
   )
   
@@ -119,11 +120,12 @@ save_file_versions_from_git <- function(repo_https,
                                     file_ext = fs::path_ext(file_in_repo)),
       command =
         glue::glue(
-          "bash -c 'COMMITSPATH=$PWD; cd {repo_local_path} ; git cat-file -p {commit}:{file_path_in_repo} > $COMMITSPATH/{output_file_name}'",
+          "bash -c 'COMMITSPATH={qt}$(PWD){qt}; cd {repo_local_path} ; git cat-file -p {commit}:{file_path_in_repo} > {qt}$COMMITSPATH{qt}/{output_file_name}'",
           repo_local_path = repo_local_path,
           commit = commit,
           file_path_in_repo = file_path_in_repo,
-          output_file_name = output_file_name
+          output_file_name = output_file_name,
+          qt = '"'
         )
     )
   
