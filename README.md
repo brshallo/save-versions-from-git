@@ -1,6 +1,21 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+# PRE-REQUISITES
+Libraries required:
+```
+install.packages("tidyverse")
+install.packages("dplyr")
+install.packages("utf8")
+install.packages("pkgconfig")
+install.packages("gert")
+install.packages("crayon")
+install.packages("here")
+install.packages("rprojroot")
+install.packages("bit64")
+```
+
+
 # Save all versions of file from a git repo
 
 `save_file_versions_from_git*()` is a helper to make it easy to save all
