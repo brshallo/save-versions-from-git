@@ -3,6 +3,7 @@ library(fs)
 library(purrr)
 library(readr)
 library(gert)
+library(stringr)
 
 # Add git to PATH (if not already on)
 if(length(grep("(?i)Git//bin", Sys.getenv("PATH"))) == 0) {
@@ -92,7 +93,7 @@ save_file_versions_from_git <- function(repo_https,
   # Create commits.csv that contain cols for commit and date for versions of file 
   system(
     glue::glue(
-      "bash -c 'COMMITSPATH=$PWD; cd {repo_local_path} ; git log --oneline --pretty=format:{format_code} --date=format:{date_code} -- {file_path_in_repo} > {qt}$COMMITSPATH{qt}/{folder_output}/commits.txt'",
+      "bash -c 'file_path_in_repo='\"'{file_path_in_repo}'\"'; COMMITSPATH=$PWD; cd {repo_local_path} ; git log --oneline --pretty=format:{format_code} --date=format:{date_code} -- {qt}$file_path_in_repo{qt} > {qt}$COMMITSPATH{qt}/{folder_output}/commits.txt'",
       repo_local_path = repo_local_path,
       file_path_in_repo = file_path_in_repo,
       folder_output = folder_output,
@@ -120,7 +121,7 @@ save_file_versions_from_git <- function(repo_https,
                                     file_ext = fs::path_ext(file_in_repo)),
       command =
         glue::glue(
-          "bash -c 'COMMITSPATH=$PWD; cd {repo_local_path} ; git cat-file -p {commit}:{file_path_in_repo} > {qt}$COMMITSPATH{qt}/{output_file_name}'",
+          "bash -c 'file_path_in_repo='\"'{file_path_in_repo}'\"'; COMMITSPATH=$PWD; file_commit={commit}:$file_path_in_repo; cd {repo_local_path}; git cat-file -p {qt}$file_commit{qt} > {qt}$COMMITSPATH{qt}/{output_file_name}'",
           repo_local_path = repo_local_path,
           commit = commit,
           file_path_in_repo = file_path_in_repo,
@@ -185,7 +186,8 @@ save_file_versions_from_github <- function(file_url,
   
   repo_https <- stringr::str_extract(file_url, "https://github.com/[^/]+/[^/]+")
   file_path_in_repo <- stringr::str_remove(file_url, "https://github.com/[^/]+/[^/]+/[^/]+/[^/]+/")
-  
+  file_path_in_repo <- str_replace(file_path_in_repo, "%20", " ")
+
   save_file_versions_from_git(repo_https,
                               file_path_in_repo,
                               overwrite_all,
